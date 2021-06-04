@@ -31,7 +31,7 @@ class MyGame extends Phaser.Scene {
     }
 
     create() {
-        const ship = this.add.image(0, 350, 'ship');
+        const ship = this.add.image(0, 0, 'ship');
 
         player.sprite = this.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
         player.sprite.displayHeight = PLAYER_HEIGHT;
