@@ -25,7 +25,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('player disconnected');
-    leaveRoom(socket.id);
+    let roomAvailable = leaveRoom(socket.id);
+    if (roomAvailable) {
+      io.to(room).emit('playerLeft', {
+        id: socket.id
+      });
+    }
   });
 
   socket.on('move', ({ id, position }) => {
