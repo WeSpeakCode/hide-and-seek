@@ -29,3 +29,20 @@ export const getRandomString = (length) => {
   }
   return letters.join('');
 };
+
+export const comparer = (otherArray) => {
+  return function (current) {
+    return otherArray.filter(function (other) {
+      return other.id == current.id
+    }).length == 0;
+  }
+}
+
+
+export const printSpriteInfo = (sprite, scene) => {
+  console.log('Sprite: ' + ' (' + sprite.width + ' x ' + sprite.height + ')');
+  console.log('x: ' + sprite.x.toFixed(1) + ' y: ' + sprite.y.toFixed(1));
+  console.log('angle: ' + sprite.angle.toFixed(1) + ' rotation: ' + sprite.rotation.toFixed(1));
+  console.log('visible: ' + sprite.visible + ' in camera: ' + sprite.inCamera);
+  console.log('bounds x: ' + sprite._bounds);
+}

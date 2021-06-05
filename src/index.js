@@ -8,10 +8,12 @@ import Player from './player';
 
 import { movePlayer, movePlayerToPosition } from './movement'
 import { initAnimation, animateMovement } from './animations'
+import { createPlayer, removePlayer } from './player-manager'
 import {
     getQueryParameter,
     getRandomString,
     updateQueryParameter,
+    comparer
 } from './utils';
 import {
     PLAYER_SPRITE_HEIGHT,
@@ -69,41 +71,13 @@ class MyGame extends Phaser.Scene {
         });
         socket.on('playerJoined', (userId) => {
             console.log('playerJoined ' + userId);
-            createPlayer(userId.id, this);
+            let player = createPlayer(userId.id, this);
+            otherPlayers.push(player);
         });
-
-        function createPlayer(userId, scene) {
-            console.log(`creating player with id ${userId}`);
-            console.log(scene);
-            var otherPlayer = new Player();
-            otherPlayer.id = userId;
-            otherPlayer.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
-            otherPlayer.sprite.displayHeight = PLAYER_HEIGHT;
-            otherPlayer.sprite.displayWidth = PLAYER_WIDTH;
-            scene.load.spritesheet(userId, playerSprite, {
-                frameWidth: PLAYER_SPRITE_WIDTH,
-                frameHeight: PLAYER_SPRITE_HEIGHT,
-            });
-            otherPlayers.push(otherPlayer);
-            return otherPlayer;
-        }
-
-        function removePlayer(userId, scene) {
-            otherPlayers.find(u => u.id === userId).sprite.destroy(true);
-            otherPlayers = otherPlayers.filter(u => u.id === userId);
-        }
-
-        function comparer(otherArray) {
-            return function (current) {
-                return otherArray.filter(function (other) {
-                    return other.id == current.id
-                }).length == 0;
-            }
-        }
 
         socket.on('playerLeft', (userId) => {
             console.log('player left ' + userId.id);
-            removePlayer(userId.id, this);
+            removePlayer(userId.id, otherPlayers);
         })
 
         socket.on('roomData', (data) => {
@@ -164,19 +138,7 @@ class MyGame extends Phaser.Scene {
             player.movedLastFrame = false;
         }
         animateMovement(pressedKeys, player.sprite);
-    }   
-}
-
-const spriteInfo = function (sprite, x, y, color, scene) {
-    console.log(scene);
-
-    console.log('Sprite: ' + ' (' + sprite.width + ' x ' + sprite.height + ')');
-    console.log('x: ' + sprite.x.toFixed(1) + ' y: ' + sprite.y.toFixed(1));
-    console.log('angle: ' + sprite.angle.toFixed(1) + ' rotation: ' + sprite.rotation.toFixed(1));
-    console.log('visible: ' + sprite.visible + ' in camera: ' + sprite.inCamera);
-    console.log('bounds x: ' + sprite._bounds);
-
-
+    }
 }
 
 const config = {
