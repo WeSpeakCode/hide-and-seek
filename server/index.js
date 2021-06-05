@@ -19,9 +19,11 @@ io.on('connection', (socket) => {
 
   console.log('player connected');
 
-  io.to(socket.id).emit('roomData', {
-    users: getUsersInRoom(room) // get user data based on user's room
-  });
+  setTimeout(() => {
+    socket.emit('roomData', {
+      users: getUsersInRoom(room) // get user data based on user's room
+    });  
+  }, 1000)//HACK: the sprite is not drawn without the delay
 
   socket.on('disconnect', () => {
     console.log('player disconnected');

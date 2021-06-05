@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 
 import shipImg from './assets/ship.png';
 import playerSprite from './assets/player.png';
+import ghostSprite from './assets/ghost.png';
 
 import Player from './player';
 
@@ -20,6 +21,8 @@ import {
     PLAYER_SPRITE_WIDTH,
     PLAYER_HEIGHT,
     PLAYER_WIDTH,
+    GHOST_SPRITE_HEIGHT,
+    GHOST_SPRITE_WIDTH,
     PLAYER_START_X,
     PLAYER_START_Y,
 } from './constants';
@@ -49,6 +52,10 @@ class MyGame extends Phaser.Scene {
             frameWidth: PLAYER_SPRITE_WIDTH,
             frameHeight: PLAYER_SPRITE_HEIGHT,
         });
+        this.load.spritesheet('ghost', ghostSprite, {
+            frameWidth: GHOST_SPRITE_WIDTH,
+            frameHeight: GHOST_SPRITE_HEIGHT,
+        });
 
         socket = io(`localhost:3000?room=${room}&user=${user}`);
         socket.on('connect', function () {
@@ -66,7 +73,7 @@ class MyGame extends Phaser.Scene {
             }
         });
         socket.on('moveEnd', () => {
-            console.log(otherPlayers);
+            //console.log(otherPlayers);
             //console.log('player move end');
         });
         socket.on('playerJoined', (userId) => {
@@ -89,11 +96,12 @@ class MyGame extends Phaser.Scene {
                 for (let i = 0; i < newPlayers.length; i++) {
                     console.log(newPlayers[i]);
                     var newPlayer = createPlayer(newPlayers[i].id, this);
+                    otherPlayers.push(newPlayer);
                     var position = newPlayers[i].position;
                     if (typeof (position) === 'undefined') {
                         position = { x: PLAYER_START_X, y: PLAYER_START_Y };
                     }
-                    //movePlayerToPosition(newPlayer, { x: position.x, y: position.y });
+                    movePlayerToPosition(newPlayer, { x: position.x, y: position.y });
                 }
             }
             console.log(`newPlayers ${newPlayers}`);
@@ -125,7 +133,7 @@ class MyGame extends Phaser.Scene {
         if (playerMoved) {
             socket.emit('move', { id: player.id, position: { x: player.sprite.x, y: player.sprite.y } });
             player.movedLastFrame = true;
-            console.log(`moving player ${player.id}`);
+            //console.log(`moving player ${player.id}`);
         } else {
             if (player.movedLastFrame) {
                 // console.log(player.sprite);

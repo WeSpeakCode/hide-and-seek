@@ -14,13 +14,9 @@ export const createPlayer = (userId, scene) => {
     console.log(scene);
     var player = new Player();
     player.id = userId;
-    player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
+    player.sprite = scene.add.sprite(PLAYER_START_X + Math.floor(Math.random() * 10), PLAYER_START_Y, 'player');
     player.sprite.displayHeight = PLAYER_HEIGHT;
-    player.sprite.displayWidth = PLAYER_WIDTH;
-    scene.load.spritesheet(userId, playerSprite, {
-        frameWidth: PLAYER_SPRITE_WIDTH,
-        frameHeight: PLAYER_SPRITE_HEIGHT,
-    });
+    player.sprite.displayWidth = PLAYER_WIDTH;    
     return player;
 }
 
