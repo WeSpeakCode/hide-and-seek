@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
   setTimeout(() => {
     socket.emit('roomData', {
       users: getUsersInRoom(room) // get user data based on user's room
-    });  
+    });
   }, 1000)//HACK: the sprite is not drawn without the delay
 
   socket.on('disconnect', () => {
@@ -49,6 +49,10 @@ io.on('connection', (socket) => {
     console.log(imposter);
     io.to(room).emit('onGameStart', imposter);
   });
+  socket.on('onKill', (evidence) => {
+    console.log(evidence);
+    socket.broadcast.emit('onKill', evidence);
+  })
 
 });
 

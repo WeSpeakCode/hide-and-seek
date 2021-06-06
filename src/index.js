@@ -11,12 +11,9 @@ import Player from './player';
 import { movePlayer, movePlayerToPosition } from './movement'
 import { initAnimation, animateMovement } from './animations'
 import { createPlayer, removePlayer, markPlayerAsImposter } from './player-manager'
-import {
-    getQueryParameter,
-    getRandomString,
-    updateQueryParameter,
-    comparer
-} from './utils';
+import { findClosestPlayer } from './collision-detection'
+import { getQueryParameter, getRandomString, updateQueryParameter } from './utils';
+
 import {
     PLAYER_SPRITE_HEIGHT, PLAYER_SPRITE_WIDTH,
     PLAYER_HEIGHT, PLAYER_WIDTH,
@@ -30,6 +27,7 @@ const allPlayers = [];
 let startButton;
 let myGame;
 let gameStarted = false;
+let killed = false;
 
 let pressedKeys = [];
 let socket;
@@ -110,7 +108,7 @@ class MyGame extends Phaser.Scene {
                     console.log('user is already here');
                     playerFromLocal.admin = user.admin;
                     if (user.admin !== undefined) {
-                        console.log('current user is admin');
+                        console.log('you are the admin');
 
                         createStartButton(this);
                     }
@@ -119,9 +117,21 @@ class MyGame extends Phaser.Scene {
         })
 
         socket.on('onGameStart', (imposter) => {
-            console.log(`game start ${imposter}`);
+            console.log(`game start ${imposter.id}`);
             gameStarted = true;
             markPlayerAsImposter(imposter.id, allPlayers);
+            if (imposter.id == player.id) {
+                console.log('you are the imposter');
+                player.imposter = true;
+            }
+        })
+
+        socket.on('onKill', ({ killer, victim }) => {
+            console.log(`killer ${killer} killed victim ${victim}`);
+            if (player.id === victim) {
+                console.log(`you are killed`);
+                removePlayer(player.id, allPlayers);
+            }
         })
     }
 
@@ -144,6 +154,16 @@ class MyGame extends Phaser.Scene {
         this.input.keyboard.on('keyup', (e) => {
             if (!gameStarted)
                 return;
+            if (e.code === 'KeyK' && player.imposter) {
+                console.log('pressed kill');
+                let closestPlayer = findClosestPlayer(player, allPlayers);
+                if (closestPlayer !== undefined) {
+                    console.log(player.id);
+                    console.log(closestPlayer.id);
+
+                    socket.emit('onKill', { killer: player.id, victim: closestPlayer.id });
+                }
+            }
             pressedKeys = pressedKeys.filter((key) => key !== e.code);
         });
     }

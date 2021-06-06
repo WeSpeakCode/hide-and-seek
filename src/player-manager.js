@@ -21,12 +21,15 @@ export const createPlayer = (userId, scene) => {
 }
 
 export const removePlayer = (userId, players) => {
+    console.log(`removing player ${userId}`);
     players.find(u => u.id === userId).sprite.destroy(true);
     players = players.filter(u => u.id === userId);
 }
 
 export const markPlayerAsImposter = (userId, players) => {
-    let player = players.filter(u => u.id === userId);
+    let player = players.find(u => u.id === userId);
     player.imposter = true;
+    var index = players.findIndex(p => p.id == userId);
+    players[index] = player;
     return player;
 }

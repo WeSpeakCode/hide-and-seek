@@ -34,8 +34,6 @@ export const movePlayer = (keys, player) => {
 
 export const movePlayerToPosition = (player, position) => {
     var sprite = player.sprite;
-    // console.log(`current position ${sprite.x} ${sprite.y}`);
-    // console.log(`new position ${position.x} ${position.y}`);
     sprite.x = position.x;
     sprite.y = position.y;
 }
