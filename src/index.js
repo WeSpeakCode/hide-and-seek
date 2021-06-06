@@ -4,12 +4,13 @@ import { io } from 'socket.io-client';
 import shipImg from './assets/ship.png';
 import playerSprite from './assets/player.png';
 import ghostSprite from './assets/ghost.png';
+import startButtonSprite from './assets/start-button.png'
 
 import Player from './player';
 
 import { movePlayer, movePlayerToPosition } from './movement'
 import { initAnimation, animateMovement } from './animations'
-import { createPlayer, removePlayer } from './player-manager'
+import { createPlayer, removePlayer, markPlayerAsImposter } from './player-manager'
 import {
     getQueryParameter,
     getRandomString,
@@ -17,18 +18,18 @@ import {
     comparer
 } from './utils';
 import {
-    PLAYER_SPRITE_HEIGHT,
-    PLAYER_SPRITE_WIDTH,
-    PLAYER_HEIGHT,
-    PLAYER_WIDTH,
-    GHOST_SPRITE_HEIGHT,
-    GHOST_SPRITE_WIDTH,
-    PLAYER_START_X,
-    PLAYER_START_Y,
+    PLAYER_SPRITE_HEIGHT, PLAYER_SPRITE_WIDTH,
+    PLAYER_HEIGHT, PLAYER_WIDTH,
+    GHOST_SPRITE_HEIGHT, GHOST_SPRITE_WIDTH,
+    PLAYER_START_X, PLAYER_START_Y,
+    START_BUTTON_START_X, START_BUTTON_START_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT
 } from './constants';
 
 const player = new Player();
-const otherPlayers = [];
+const allPlayers = [];
+let startButton;
+let myGame;
+let gameStarted = false;
 
 let pressedKeys = [];
 let socket;
@@ -56,6 +57,11 @@ class MyGame extends Phaser.Scene {
             frameWidth: GHOST_SPRITE_WIDTH,
             frameHeight: GHOST_SPRITE_HEIGHT,
         });
+        this.load.spritesheet('startButtonSprite', startButtonSprite, {
+            frameWidth: START_BUTTON_WIDTH,
+            frameHeight: START_BUTTON_HEIGHT,
+        });
+        this.load.image('startButtonSprite', startButtonSprite);
 
         socket = io(`localhost:3000?room=${room}&user=${user}`);
         socket.on('connect', function () {
@@ -63,48 +69,59 @@ class MyGame extends Phaser.Scene {
             player.id = socket.id;
         });
         socket.on('move', ({ id, position }) => {
-            var otherPlayer = otherPlayers.find(u => u.id === id);
-            // console.log(otherPlayer);
-            // console.log(id);
-            // console.log(otherPlayers);
+            var otherPlayer = allPlayers.find(u => u.id === id);
 
             if (typeof (otherPlayer) !== "undefined") {
                 movePlayerToPosition(otherPlayer, position);
             }
         });
         socket.on('moveEnd', () => {
-            //console.log(otherPlayers);
-            //console.log('player move end');
         });
         socket.on('playerJoined', (userId) => {
             console.log('playerJoined ' + userId);
             let player = createPlayer(userId.id, this);
-            otherPlayers.push(player);
+            allPlayers.push(player);
         });
 
         socket.on('playerLeft', (userId) => {
             console.log('player left ' + userId.id);
-            removePlayer(userId.id, otherPlayers);
+            removePlayer(userId.id, allPlayers);
         })
 
         socket.on('roomData', (data) => {
             console.log('room data');
             console.log(data.users);
-            console.log(otherPlayers);
-            var newPlayers = data.users.filter(comparer(otherPlayers));
-            if (typeof (newPlayers) !== "undefined") {
-                for (let i = 0; i < newPlayers.length; i++) {
-                    console.log(newPlayers[i]);
-                    var newPlayer = createPlayer(newPlayers[i].id, this);
-                    otherPlayers.push(newPlayer);
-                    var position = newPlayers[i].position;
+            console.log(allPlayers);
+            for (let i = 0; i < data.users.length; i++) {
+                let user = data.users[i];
+                console.log(user);
+                let playerFromLocal = allPlayers.find(p => p.id == user.id);
+                console.log(playerFromLocal);
+                if (typeof (playerFromLocal) === "undefined") {
+                    // new player
+                    var newPlayer = createPlayer(user.id, this);
+                    allPlayers.push(newPlayer);
+                    var position = newPlayer.position;
                     if (typeof (position) === 'undefined') {
                         position = { x: PLAYER_START_X, y: PLAYER_START_Y };
                     }
                     movePlayerToPosition(newPlayer, { x: position.x, y: position.y });
+                } else {
+                    console.log('user is already here');
+                    playerFromLocal.admin = user.admin;
+                    if (user.admin !== undefined) {
+                        console.log('current user is admin');
+
+                        createStartButton(this);
+                    }
                 }
             }
-            console.log(`newPlayers ${newPlayers}`);
+        })
+
+        socket.on('onGameStart', (imposter) => {
+            console.log(`game start ${imposter}`);
+            gameStarted = true;
+            markPlayerAsImposter(imposter.id, allPlayers);
         })
     }
 
@@ -118,11 +135,15 @@ class MyGame extends Phaser.Scene {
         initAnimation(this);
 
         this.input.keyboard.on('keydown', (e) => {
+            if (!gameStarted)
+                return;
             if (!pressedKeys.includes(e.code)) {
                 pressedKeys.push(e.code);
             }
         });
         this.input.keyboard.on('keyup', (e) => {
+            if (!gameStarted)
+                return;
             pressedKeys = pressedKeys.filter((key) => key !== e.code);
         });
     }
@@ -133,20 +154,30 @@ class MyGame extends Phaser.Scene {
         if (playerMoved) {
             socket.emit('move', { id: player.id, position: { x: player.sprite.x, y: player.sprite.y } });
             player.movedLastFrame = true;
-            //console.log(`moving player ${player.id}`);
         } else {
             if (player.movedLastFrame) {
-                // console.log(player.sprite);
-                // console.log('x: ' + player.sprite.x + ' y: ' + player.sprite.y);
-                // console.log('x: ' + otherPlayers[0].sprite.x + ' y: ' + otherPlayers[0].sprite.y);
-                // console.log('visible: ' + player.sprite.visible + ' in camera: ' + player.sprite.inCamera);
-                // console.log('visible: ' + otherPlayers[0].sprite.visible + ' in camera: ' + otherPlayers[0].sprite.inCamera);
                 socket.emit('moveEnd');
             }
             player.movedLastFrame = false;
         }
         animateMovement(pressedKeys, player.sprite);
     }
+}
+
+function createStartButton(scene) {
+    startButton = scene.add.image(START_BUTTON_START_X, START_BUTTON_START_Y, 'startButtonSprite');
+    startButton.setInteractive({ useHandCursor: true });
+    startButton.on('pointerover', function () {
+        console.log('point over');
+        this.setScale(1.25);
+    });
+    startButton.on('pointerout', function () {
+        this.setScale(1);
+    });
+    startButton.on('pointerdown', function () {
+        startButton.visible = false;
+        socket.emit('onGameStart');
+    });
 }
 
 const config = {
@@ -157,4 +188,4 @@ const config = {
     scene: MyGame
 };
 
-const game = new Phaser.Game(config);
+myGame = new Phaser.Game(config);

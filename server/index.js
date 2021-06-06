@@ -5,7 +5,7 @@ const io = require('socket.io')(http, {
     origins: ['http://localhost:8081'],
   },
 });
-const { joinToRoom, leaveRoom, getUsersInRoom, updatePosition } = require('./room-manager')
+const { joinToRoom, leaveRoom, getUsersInRoom, updatePosition, makeSomeoneImposter } = require('./room-manager')
 
 io.on('connection', (socket) => {
   const room = socket.handshake.query.room;
@@ -43,6 +43,13 @@ io.on('connection', (socket) => {
   socket.on('moveEnd', () => {
     socket.broadcast.emit('moveEnd');
   });
+  socket.on('onGameStart', () => {
+    console.log('on game start');
+    let imposter = makeSomeoneImposter();
+    console.log(imposter);
+    io.to(room).emit('onGameStart', imposter);
+  });
+
 });
 
 http.listen(3000, () => {

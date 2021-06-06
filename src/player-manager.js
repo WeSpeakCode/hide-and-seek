@@ -24,3 +24,9 @@ export const removePlayer = (userId, players) => {
     players.find(u => u.id === userId).sprite.destroy(true);
     players = players.filter(u => u.id === userId);
 }
+
+export const markPlayerAsImposter = (userId, players) => {
+    let player = players.filter(u => u.id === userId);
+    player.imposter = true;
+    return player;
+}

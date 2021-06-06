@@ -12,6 +12,10 @@ const joinToRoom = (room, user) => {
         return { error: 'user already exists' };
     } else {
         user.room = room;
+        if (connectedUsers.length == 0) {
+            // first user, admin
+            user.admin = true;
+        }
         connectedUsers.push(user);
     }
 }
@@ -33,4 +37,11 @@ const updatePosition = (userId, position) => {
     user.position = position;
 }
 
-module.exports = { joinToRoom, leaveRoom, getUsersInRoom, updatePosition };
+const makeSomeoneImposter = () => {
+    console.log(connectedUsers.length);
+    let randomIndex = Math.floor(Math.random() * connectedUsers.length);
+    console.log(`random index ${randomIndex}`);
+    return connectedUsers[randomIndex];
+}
+
+module.exports = { joinToRoom, leaveRoom, getUsersInRoom, updatePosition, makeSomeoneImposter };
