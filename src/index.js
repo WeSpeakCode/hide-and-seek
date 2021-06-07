@@ -129,8 +129,10 @@ class MyGame extends Phaser.Scene {
         socket.on('onKill', ({ killer, victim }) => {
             console.log(`killer ${killer} killed victim ${victim}`);
             if (player.id === victim) {
+                killed = true;
                 console.log(`you are killed`);
                 removePlayer(player.id, allPlayers);
+                player.sprite.destroy(true);
             }
         })
     }
@@ -141,6 +143,7 @@ class MyGame extends Phaser.Scene {
         player.sprite = this.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
         player.sprite.displayHeight = PLAYER_HEIGHT;
         player.sprite.displayWidth = PLAYER_WIDTH;
+        console.log(player.sprite.nameLabel);
 
         initAnimation(this);
 
@@ -160,7 +163,7 @@ class MyGame extends Phaser.Scene {
                 if (closestPlayer !== undefined) {
                     console.log(player.id);
                     console.log(closestPlayer.id);
-
+                    removePlayer(closestPlayer.id, allPlayers);
                     socket.emit('onKill', { killer: player.id, victim: closestPlayer.id });
                 }
             }
@@ -169,6 +172,8 @@ class MyGame extends Phaser.Scene {
     }
 
     update() {
+        if (killed)
+            return;
         this.scene.scene.cameras.main.centerOn(player.sprite.x, player.sprite.y);
         let playerMoved = movePlayer(pressedKeys, player);
         if (playerMoved) {
