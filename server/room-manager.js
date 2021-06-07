@@ -20,9 +20,14 @@ const joinToRoom = (room, user) => {
             user.admin = false;
         }
         user.color = colorKeys[connectedUsers.length % colorKeys.length];
+        user.position = findPosition();
         connectedUsers.push(user);
         return user;
     }
+}
+
+function findPosition() {
+    return { x: 330 + connectedUsers.length * 84/2, y: connectedUsers.length * - 10 };
 }
 
 const leaveRoom = (userId) => {

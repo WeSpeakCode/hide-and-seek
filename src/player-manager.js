@@ -6,12 +6,12 @@ import {
     PLAYER_START_Y,
 } from './constants';
 
-export const createPlayer = (user, scene) => {
-    console.log(`creating player with id ${user.id} name: ${user.name} color:${user.color}`); 
-    console.log(scene.textures.exists('player-'+user.color));
-    console.log(scene);
+export const createPlayer = (user, scene, index) => {
+    console.log(`creating player with id ${user.id} name: ${user.name} color:${user.color}`);
+    console.log(`index ${index}`);
     var player = new Player();
     player.id = user.id;
+    player.position = user.position;
     player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player-' + user.color).setScale(0.5);
     player.sprite.displayHeight = PLAYER_HEIGHT;
     player.sprite.displayWidth = PLAYER_WIDTH;

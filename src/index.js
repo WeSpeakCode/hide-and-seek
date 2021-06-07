@@ -69,21 +69,27 @@ class MyGame extends Phaser.Scene {
         });
         socket.on('move', ({ id, position }) => {
             var otherPlayer = allPlayers.find(u => u.id === id);
+            otherPlayer.position = position;
 
             if (typeof (otherPlayer) !== "undefined") {
-                movePlayerToPosition(otherPlayer, position);
+                movePlayerToPosition(otherPlayer);
             }
         });
         socket.on('moveEnd', () => {
         });
         socket.on('playerJoined', (user) => {
             console.log('playerJoined ' + user);
-            let joinedPlayer = createPlayer(user, this);
-            if (player.id === joinedPlayer.id) {
-                console.log('current player');
-                player = joinedPlayer;
-            }
-            allPlayers.push(joinedPlayer);
+            let playerFromLocal = allPlayers.find(p => p.id == user.id);
+            console.log(`player joined ${allPlayers.length} ${playerFromLocal}`);
+            if (typeof (playerFromLocal) === "undefined") {
+                // new player
+                var newPlayer = createPlayer(user, this, allPlayers.length);
+                allPlayers.push(newPlayer);
+                if (player.id === user.id) {
+                    player = newPlayer;
+                }                      
+                movePlayerToPosition(newPlayer);
+            } 
         });
 
         socket.on('playerLeft', (userId) => {
@@ -92,23 +98,18 @@ class MyGame extends Phaser.Scene {
         })
 
         socket.on('roomData', (data) => {
-            console.log('room data');
-            console.log(data.users);
-            console.log(allPlayers);
             for (let i = 0; i < data.users.length; i++) {
                 let user = data.users[i];
-                console.log(user);
                 let playerFromLocal = allPlayers.find(p => p.id == user.id);
-                console.log(playerFromLocal);
+                console.log(`room data ${allPlayers.length} ${playerFromLocal}`);
                 if (typeof (playerFromLocal) === "undefined") {
                     // new player
-                    var newPlayer = createPlayer(user, this);
-                    allPlayers.push(newPlayer);
-                    var position = newPlayer.position;
-                    if (typeof (position) === 'undefined') {
-                        position = { x: PLAYER_START_X, y: PLAYER_START_Y };
-                    }
-                    movePlayerToPosition(newPlayer, { x: position.x, y: position.y });
+                    var newPlayer = createPlayer(user, this, allPlayers.length);
+                    allPlayers.push(newPlayer);              
+                    if (player.id === user.id) {
+                        player = newPlayer;
+                    }      
+                    movePlayerToPosition(newPlayer);
                 } else {
                     console.log('user is already here');
                     playerFromLocal.admin = user.admin;
@@ -180,8 +181,10 @@ class MyGame extends Phaser.Scene {
     update() {
         if (killed)
             return;
-        if (player.sprite === undefined)
+        if (player.sprite === undefined){
+            console.log('player not created yet');
             return;
+        }
         this.scene.scene.cameras.main.centerOn(player.sprite.x, player.sprite.y);
         let playerMoved = movePlayer(pressedKeys, player);
         if (playerMoved) {

@@ -35,7 +35,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('move', ({ id, position }) => {
-    // console.log(`player ${id} moved to ${position.x}`);
     updatePosition(id, position);
     socket.broadcast.emit('move', { id, position });
   });
