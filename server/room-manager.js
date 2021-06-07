@@ -1,4 +1,5 @@
 var connectedUsers = [];
+const colorKeys = ['red', 'brown', 'orange', 'yellow', 'pink', 'purple', 'blue', 'cyan', 'green', 'lime', 'white', 'black'];
 
 const joinToRoom = (room, user) => {
     console.log('current users');
@@ -15,8 +16,12 @@ const joinToRoom = (room, user) => {
         if (connectedUsers.length == 0) {
             // first user, admin
             user.admin = true;
+        } else {
+            user.admin = false;
         }
+        user.color = colorKeys[connectedUsers.length % colorKeys.length];
         connectedUsers.push(user);
+        return user;
     }
 }
 

@@ -11,15 +11,14 @@ io.on('connection', (socket) => {
   const room = socket.handshake.query.room;
   const user = socket.handshake.query.user;
   console.log(room);
-  joinToRoom(room, { 'id': socket.id, 'name': user });
+  let playerJoined = joinToRoom(room, { 'id': socket.id, 'name': user });
   socket.join(room);
-  io.to(room).emit('playerJoined', {
-    id: socket.id
-  });
-
-  console.log('player connected');
 
   setTimeout(() => {
+    io.to(room).emit('playerJoined', playerJoined);
+
+    console.log('player connected');
+  
     socket.emit('roomData', {
       users: getUsersInRoom(room) // get user data based on user's room
     });

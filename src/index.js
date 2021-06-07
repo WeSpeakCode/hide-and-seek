@@ -13,6 +13,7 @@ import { initAnimation, animateMovement } from './animations'
 import { createPlayer, removePlayer, markPlayerAsImposter } from './player-manager'
 import { findClosestPlayer } from './collision-detection'
 import { getQueryParameter, getRandomString, updateQueryParameter } from './utils';
+import { createAllColorPlayers } from './sprite-helper';
 
 import {
     PLAYER_SPRITE_HEIGHT, PLAYER_SPRITE_WIDTH,
@@ -22,9 +23,10 @@ import {
     START_BUTTON_START_X, START_BUTTON_START_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT
 } from './constants';
 
-const player = new Player();
+var player = new Player();
 const allPlayers = [];
 let startButton;
+var playerImage;
 let myGame;
 let gameStarted = false;
 let killed = false;
@@ -45,7 +47,6 @@ class MyGame extends Phaser.Scene {
     }
 
     preload() {
-        console.log(player.name);
         this.load.image('ship', shipImg);
         this.load.spritesheet('player', playerSprite, {
             frameWidth: PLAYER_SPRITE_WIDTH,
@@ -75,10 +76,14 @@ class MyGame extends Phaser.Scene {
         });
         socket.on('moveEnd', () => {
         });
-        socket.on('playerJoined', (userId) => {
-            console.log('playerJoined ' + userId);
-            let player = createPlayer(userId.id, this);
-            allPlayers.push(player);
+        socket.on('playerJoined', (user) => {
+            console.log('playerJoined ' + user);
+            let joinedPlayer = createPlayer(user, this);
+            if (player.id === joinedPlayer.id) {
+                console.log('current player');
+                player = joinedPlayer;
+            }
+            allPlayers.push(joinedPlayer);
         });
 
         socket.on('playerLeft', (userId) => {
@@ -97,7 +102,7 @@ class MyGame extends Phaser.Scene {
                 console.log(playerFromLocal);
                 if (typeof (playerFromLocal) === "undefined") {
                     // new player
-                    var newPlayer = createPlayer(user.id, this);
+                    var newPlayer = createPlayer(user, this);
                     allPlayers.push(newPlayer);
                     var position = newPlayer.position;
                     if (typeof (position) === 'undefined') {
@@ -107,7 +112,7 @@ class MyGame extends Phaser.Scene {
                 } else {
                     console.log('user is already here');
                     playerFromLocal.admin = user.admin;
-                    if (user.admin !== undefined) {
+                    if (player.id == user.id && user.admin === true) {
                         console.log('you are the admin');
 
                         createStartButton(this);
@@ -139,11 +144,12 @@ class MyGame extends Phaser.Scene {
 
     create() {
         const ship = this.add.image(0, 0, 'ship');
+        console.log('creating all the players');
+        createAllColorPlayers(myGame);
 
-        player.sprite = this.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
-        player.sprite.displayHeight = PLAYER_HEIGHT;
-        player.sprite.displayWidth = PLAYER_WIDTH;
-        console.log(player.sprite.nameLabel);
+        // player.sprite = this.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
+        // player.sprite.displayHeight = PLAYER_HEIGHT;
+        // player.sprite.displayWidth = PLAYER_WIDTH;
 
         initAnimation(this);
 
@@ -173,6 +179,8 @@ class MyGame extends Phaser.Scene {
 
     update() {
         if (killed)
+            return;
+        if (player.sprite === undefined)
             return;
         this.scene.scene.cameras.main.centerOn(player.sprite.x, player.sprite.y);
         let playerMoved = movePlayer(pressedKeys, player);

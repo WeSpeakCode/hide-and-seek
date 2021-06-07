@@ -1,22 +1,20 @@
 import Player from './player'
 import {
-    PLAYER_SPRITE_HEIGHT,
-    PLAYER_SPRITE_WIDTH,
     PLAYER_HEIGHT,
     PLAYER_WIDTH,
     PLAYER_START_X,
     PLAYER_START_Y,
 } from './constants';
-import playerSprite from './assets/player.png';
 
-export const createPlayer = (userId, scene) => {
-    console.log(`creating player with id ${userId}`);
+export const createPlayer = (user, scene) => {
+    console.log(`creating player with id ${user.id} name: ${user.name} color:${user.color}`); 
+    console.log(scene.textures.exists('player-'+user.color));
     console.log(scene);
     var player = new Player();
-    player.id = userId;
-    player.sprite = scene.add.sprite(PLAYER_START_X + Math.floor(Math.random() * 10), PLAYER_START_Y, 'player');
+    player.id = user.id;
+    player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player-' + user.color).setScale(0.5);
     player.sprite.displayHeight = PLAYER_HEIGHT;
-    player.sprite.displayWidth = PLAYER_WIDTH;    
+    player.sprite.displayWidth = PLAYER_WIDTH;
     return player;
 }
 

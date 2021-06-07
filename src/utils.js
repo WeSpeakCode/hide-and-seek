@@ -38,6 +38,24 @@ export const comparer = (otherArray) => {
   }
 }
 
+export const rgbFromName = (colorName) => {
+  const defaultColor = { r: 255, g: 0, b: 0 };
+  const colorMap = {
+    'red': { r: 255, g: 0, b: 0 },
+    'brown': { r: 93, g: 57, b: 23 },
+    'orange': { r: 233, g: 104, b: 15 },
+    'yellow': { r: 244, g: 249, b: 71 },
+    'pink': { r: 230, g: 54, b: 172 },
+    'purple': { r: 87, g: 20, b: 172 },
+    'blue': { r: 15, g: 16, b: 190 },
+    'cyan': { r: 55, g: 255, b: 210 },
+    'green': { r: 21, g: 111, b: 34 },
+    'lime': { r: 72, g: 242, b: 44 },
+    'white': { r: 206, g: 216, b: 237 },
+    'black': { r: 48, g: 55, b: 61 },
+  };
+  return colorMap[colorName] || defaultColor;
+}
 
 export const printSpriteInfo = (sprite, scene) => {
   console.log('Sprite: ' + ' (' + sprite.width + ' x ' + sprite.height + ')');
