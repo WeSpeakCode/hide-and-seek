@@ -12,6 +12,7 @@ export const createPlayer = (user, scene, index) => {
     var player = new Player();
     player.id = user.id;
     player.position = user.position;
+    player.color = user.color;
     player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player-' + user.color).setScale(0.5);
     player.sprite.displayHeight = PLAYER_HEIGHT;
     player.sprite.displayWidth = PLAYER_WIDTH;

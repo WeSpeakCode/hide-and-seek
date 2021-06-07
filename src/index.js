@@ -196,7 +196,7 @@ class MyGame extends Phaser.Scene {
             }
             player.movedLastFrame = false;
         }
-        animateMovement(pressedKeys, player.sprite);
+        animateMovement(pressedKeys, player);
     }
 }
 

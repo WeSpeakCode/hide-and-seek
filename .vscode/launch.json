@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/createBoundaries.js"
+            "program": "${workspaceFolder}/utils/createBoundsFromMask.js"
         },{
             "type": "node",
             "request": "launch",

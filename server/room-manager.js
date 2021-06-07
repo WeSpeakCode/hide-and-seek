@@ -19,15 +19,30 @@ const joinToRoom = (room, user) => {
         } else {
             user.admin = false;
         }
-        user.color = colorKeys[connectedUsers.length % colorKeys.length];
+        user.color = getColor();
         user.position = findPosition();
         connectedUsers.push(user);
         return user;
     }
 }
 
+// get random color that is not already assigned to any users
+function getColor() {
+    let index = -1;
+    while (index === -1) {
+        index = Math.floor(Math.random() * colorKeys.length);
+        const found = connectedUsers.some(u => u.color === colorKeys[randomIndex]);
+        if (found) {
+            index = -1
+        }
+    }
+    console.log(`random color found ${colorKeys[index]}`);
+
+    return colorKeys[index];
+}
+
 function findPosition() {
-    return { x: 330 + connectedUsers.length * 84/2, y: connectedUsers.length * - 10 };
+    return { x: 330 + connectedUsers.length * 84 / 2, y: connectedUsers.length * - 10 };
 }
 
 const leaveRoom = (userId) => {
