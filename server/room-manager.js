@@ -31,7 +31,7 @@ function getColor() {
     let index = -1;
     while (index === -1) {
         index = Math.floor(Math.random() * colorKeys.length);
-        const found = connectedUsers.some(u => u.color === colorKeys[randomIndex]);
+        const found = connectedUsers.some(u => u.color === colorKeys[index]);
         if (found) {
             index = -1
         }

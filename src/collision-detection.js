@@ -9,9 +9,7 @@ export const findClosestPlayer = (player, players) => {
             continue;
         }
         let distance = Phaser.Math.Distance.Between(player.sprite.x, player.sprite.y, anotherPlayer.sprite.x, anotherPlayer.sprite.y);
-        console.log(distance);
         if (distance < MINIMUM_DISTANCE_FOR_KILL) {
-            console.log('found closest player');
             return anotherPlayer;
         }
     }

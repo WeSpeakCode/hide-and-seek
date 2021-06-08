@@ -5,6 +5,7 @@ import shipImg from './assets/ship.png';
 import playerSprite from './assets/player.png';
 import ghostSprite from './assets/ghost.png';
 import startButtonSprite from './assets/start-button.png'
+import killButtonSprite from './assets/kill-button.png'
 
 import Player from './player';
 
@@ -20,12 +21,14 @@ import {
     PLAYER_HEIGHT, PLAYER_WIDTH,
     GHOST_SPRITE_HEIGHT, GHOST_SPRITE_WIDTH,
     PLAYER_START_X, PLAYER_START_Y,
-    START_BUTTON_START_X, START_BUTTON_START_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT
+    START_BUTTON_START_X, START_BUTTON_START_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT,
+    KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y
 } from './constants';
 
 var player = new Player();
 const allPlayers = [];
 let startButton;
+let killButton;
 var playerImage;
 let myGame;
 let gameStarted = false;
@@ -61,6 +64,7 @@ class MyGame extends Phaser.Scene {
             frameHeight: START_BUTTON_HEIGHT,
         });
         this.load.image('startButtonSprite', startButtonSprite);
+        this.load.image('killButtonSprite', killButtonSprite);
 
         socket = io(`localhost:3000?room=${room}&user=${user}`);
         socket.on('connect', function () {
@@ -87,9 +91,9 @@ class MyGame extends Phaser.Scene {
                 allPlayers.push(newPlayer);
                 if (player.id === user.id) {
                     player = newPlayer;
-                }                      
+                }
                 movePlayerToPosition(newPlayer);
-            } 
+            }
         });
 
         socket.on('playerLeft', (userId) => {
@@ -105,10 +109,10 @@ class MyGame extends Phaser.Scene {
                 if (typeof (playerFromLocal) === "undefined") {
                     // new player
                     var newPlayer = createPlayer(user, this, allPlayers.length);
-                    allPlayers.push(newPlayer);              
+                    allPlayers.push(newPlayer);
                     if (player.id === user.id) {
                         player = newPlayer;
-                    }      
+                    }
                     movePlayerToPosition(newPlayer);
                 } else {
                     console.log('user is already here');
@@ -153,6 +157,7 @@ class MyGame extends Phaser.Scene {
         // player.sprite.displayWidth = PLAYER_WIDTH;
 
         initAnimation(this);
+        createKillButton(this);
 
         this.input.keyboard.on('keydown', (e) => {
             if (!gameStarted)
@@ -181,7 +186,7 @@ class MyGame extends Phaser.Scene {
     update() {
         if (killed)
             return;
-        if (player.sprite === undefined){
+        if (player.sprite === undefined) {
             console.log('player not created yet');
             return;
         }
@@ -195,6 +200,14 @@ class MyGame extends Phaser.Scene {
                 socket.emit('moveEnd');
             }
             player.movedLastFrame = false;
+        }
+        if (player.imposter) {
+            let closestPlayer = findClosestPlayer(player, allPlayers);
+            killButton.visible = (closestPlayer !== undefined);
+            if (killButton.visible) {
+                killButton.x = player.sprite.x + KILL_BUTTON_OFFSET_X;
+                killButton.y = player.sprite.y + KILL_BUTTON_OFFSET_Y;
+            }
         }
         animateMovement(pressedKeys, player);
     }
@@ -214,6 +227,21 @@ function createStartButton(scene) {
         startButton.visible = false;
         socket.emit('onGameStart');
     });
+}
+
+function createKillButton(scene) {
+    killButton = scene.add.image(KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y, 'killButtonSprite').setBlendMode(Phaser.BlendModes.DIFFERENCE);
+    killButton.setInteractive({ useHandCursor: true });
+    killButton.on('pointerover', function () {
+        console.log('point over');
+        this.setScale(1.25);
+    });
+    killButton.on('pointerout', function () {
+        this.setScale(1);
+    });
+    killButton.on('pointerdown', function () {
+    });
+    killButton.visible = false;
 }
 
 const config = {
