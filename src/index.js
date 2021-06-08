@@ -7,7 +7,7 @@ import ghostSprite from './assets/ghost.png';
 import startButtonSprite from './assets/start-button.png'
 import killButtonSprite from './assets/kill-button.png'
 
-import Player from './player';
+import Player from './classes/player';
 
 import { movePlayer, movePlayerToPosition } from './movement'
 import { initAnimation, animateMovement } from './animations'
@@ -25,7 +25,8 @@ import {
     KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y
 } from './constants';
 
-var player = new Player();
+var player;
+var currentPlayerId;
 const allPlayers = [];
 let startButton;
 let killButton;
@@ -63,36 +64,32 @@ class MyGame extends Phaser.Scene {
             frameWidth: START_BUTTON_WIDTH,
             frameHeight: START_BUTTON_HEIGHT,
         });
-        this.load.image('startButtonSprite', startButtonSprite);
+        // this.load.image('startButtonSprite', startButtonSprite);
         this.load.image('killButtonSprite', killButtonSprite);
 
         socket = io(`localhost:3000?room=${room}&user=${user}`);
         socket.on('connect', function () {
             console.log('myID ' + socket.id);
-            player.id = socket.id;
+            currentPlayerId = socket.id;
+            // player.id = socket.id;
         });
         socket.on('move', ({ id, position }) => {
             var otherPlayer = allPlayers.find(u => u.id === id);
             otherPlayer.position = position;
-
-            if (typeof (otherPlayer) !== "undefined") {
-                movePlayerToPosition(otherPlayer);
-            }
+            otherPlayer.update();
         });
         socket.on('moveEnd', () => {
         });
         socket.on('playerJoined', (user) => {
             console.log('playerJoined ' + user);
             let playerFromLocal = allPlayers.find(p => p.id == user.id);
-            console.log(`player joined ${allPlayers.length} ${playerFromLocal}`);
-            if (typeof (playerFromLocal) === "undefined") {
+            if (playerFromLocal === undefined) {
                 // new player
-                var newPlayer = createPlayer(user, this, allPlayers.length);
+                var newPlayer = createPlayer(this, user);
                 allPlayers.push(newPlayer);
-                if (player.id === user.id) {
+                if (currentPlayerId === user.id) {
                     player = newPlayer;
                 }
-                movePlayerToPosition(newPlayer);
             }
         });
 
@@ -105,15 +102,15 @@ class MyGame extends Phaser.Scene {
             for (let i = 0; i < data.users.length; i++) {
                 let user = data.users[i];
                 let playerFromLocal = allPlayers.find(p => p.id == user.id);
-                console.log(`room data ${allPlayers.length} ${playerFromLocal}`);
                 if (typeof (playerFromLocal) === "undefined") {
                     // new player
-                    var newPlayer = createPlayer(user, this, allPlayers.length);
+                    var newPlayer = createPlayer(this, user);
+                    console.log(`sprite ${newPlayer}`);
                     allPlayers.push(newPlayer);
-                    if (player.id === user.id) {
+                    if (currentPlayerId === user.id) {
                         player = newPlayer;
                     }
-                    movePlayerToPosition(newPlayer);
+                    //movePlayerToPosition(newPlayer);
                 } else {
                     console.log('user is already here');
                     playerFromLocal.admin = user.admin;
@@ -142,7 +139,6 @@ class MyGame extends Phaser.Scene {
                 killed = true;
                 console.log(`you are killed`);
                 removePlayer(player.id, allPlayers);
-                player.sprite.destroy(true);
             }
         })
     }
@@ -152,11 +148,6 @@ class MyGame extends Phaser.Scene {
         console.log('creating all the players');
         createAllColorPlayers(myGame);
 
-        // player.sprite = this.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player');
-        // player.sprite.displayHeight = PLAYER_HEIGHT;
-        // player.sprite.displayWidth = PLAYER_WIDTH;
-
-        initAnimation(this);
         createKillButton(this);
 
         this.input.keyboard.on('keydown', (e) => {
@@ -173,8 +164,6 @@ class MyGame extends Phaser.Scene {
                 console.log('pressed kill');
                 let closestPlayer = findClosestPlayer(player, allPlayers);
                 if (closestPlayer !== undefined) {
-                    console.log(player.id);
-                    console.log(closestPlayer.id);
                     removePlayer(closestPlayer.id, allPlayers);
                     socket.emit('onKill', { killer: player.id, victim: closestPlayer.id });
                 }
@@ -186,15 +175,17 @@ class MyGame extends Phaser.Scene {
     update() {
         if (killed)
             return;
-        if (player.sprite === undefined) {
-            console.log('player not created yet');
+        if (player === undefined) {
+            // console.log('player not created yet');
             return;
         }
-        this.scene.scene.cameras.main.centerOn(player.sprite.x, player.sprite.y);
+        this.scene.scene.cameras.main.startFollow(player);
+        
         let playerMoved = movePlayer(pressedKeys, player);
         if (playerMoved) {
-            socket.emit('move', { id: player.id, position: { x: player.sprite.x, y: player.sprite.y } });
-            player.movedLastFrame = true;
+            player.update();
+            socket.emit('move', { id: player.id, position: { x: player.x, y: player.y } });
+            player.movedLastFrame = true;            
         } else {
             if (player.movedLastFrame) {
                 socket.emit('moveEnd');
@@ -205,11 +196,10 @@ class MyGame extends Phaser.Scene {
             let closestPlayer = findClosestPlayer(player, allPlayers);
             killButton.visible = (closestPlayer !== undefined);
             if (killButton.visible) {
-                killButton.x = player.sprite.x + KILL_BUTTON_OFFSET_X;
-                killButton.y = player.sprite.y + KILL_BUTTON_OFFSET_Y;
+                killButton.x = player.x + KILL_BUTTON_OFFSET_X;
+                killButton.y = player.y + KILL_BUTTON_OFFSET_Y;
             }
         }
-        animateMovement(pressedKeys, player);
     }
 }
 

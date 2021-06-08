@@ -1,4 +1,4 @@
-import Player from './player'
+import Player from './classes/player'
 import {
     PLAYER_HEIGHT,
     PLAYER_WIDTH,
@@ -6,22 +6,23 @@ import {
     PLAYER_START_Y,
 } from './constants';
 
-export const createPlayer = (user, scene, index) => {
+export const createPlayer = (scene, user) => {
     console.log(`creating player with id ${user.id} name: ${user.name} color:${user.color}`);
-    console.log(`index ${index}`);
-    var player = new Player();
-    player.id = user.id;
-    player.position = user.position;
-    player.color = user.color;
-    player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player-' + user.color).setScale(0.5);
-    player.sprite.displayHeight = PLAYER_HEIGHT;
-    player.sprite.displayWidth = PLAYER_WIDTH;
+    var player = new Player(scene, user);
+    
+    // var player = new Player();
+    // player.id = user.id;
+    // player.position = user.position;
+    // player.color = user.color;
+    // player.sprite = scene.add.sprite(PLAYER_START_X, PLAYER_START_Y, 'player-' + user.color).setScale(0.5);
+    // player.sprite.displayHeight = PLAYER_HEIGHT;
+    // player.sprite.displayWidth = PLAYER_WIDTH;
     return player;
 }
 
 export const removePlayer = (userId, players) => {
     console.log(`removing player ${userId}`);
-    players.find(u => u.id === userId).sprite.destroy(true);
+    players.find(u => u.id === userId).destroy(true);
     players = players.filter(u => u.id === userId);
 }
 

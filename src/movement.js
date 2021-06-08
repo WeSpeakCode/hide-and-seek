@@ -6,28 +6,28 @@ const isPositionWithInBoundaries = (x, y) => {
 }
 
 export const movePlayer = (keys, player) => {
-    var sprite = player.sprite;
+    var position = player.position;
     let isMoved = false;
-    const absPlayerX = sprite.x + SHIP_WIDTH / 2;
-    const absPlayerY = sprite.y + SHIP_HEIGHT / 2 + 20;
+    const absPlayerX = position.x + SHIP_WIDTH / 2;
+    const absPlayerY = position.y + SHIP_HEIGHT / 2 + 20;
 
     if (keys.includes('ArrowUp') && isPositionWithInBoundaries(absPlayerX, absPlayerY - player.speed)) {
-        sprite.y = sprite.y - player.speed;
+        position.y = position.y - player.speed;
         isMoved = true;
     }
     if (keys.includes('ArrowDown') && isPositionWithInBoundaries(absPlayerX, absPlayerY + player.speed)) {
-        sprite.y = sprite.y + player.speed;
+        position.y = position.y + player.speed;
         isMoved = true;
     }
     if (keys.includes('ArrowLeft') && isPositionWithInBoundaries(absPlayerX - player.speed, absPlayerY)) {
-        sprite.x = sprite.x - player.speed;
+        position.x = position.x - player.speed;
         isMoved = true;
-        sprite.flipX = true;
+        player.flipX = true;
     }
     if (keys.includes('ArrowRight') && isPositionWithInBoundaries(absPlayerX + player.speed, absPlayerY)) {
-        sprite.x = sprite.x + player.speed;
+        position.x = position.x + player.speed;
         isMoved = true;
-        sprite.flipX = false;
+        player.flipX = false;
     }
     return isMoved;
 };
