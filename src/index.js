@@ -7,10 +7,7 @@ import ghostSprite from './assets/ghost.png';
 import startButtonSprite from './assets/start-button.png'
 import killButtonSprite from './assets/kill-button.png'
 
-import Player from './classes/player';
-
-import { movePlayer, movePlayerToPosition } from './movement'
-import { initAnimation, animateMovement } from './animations'
+import { movePlayer } from './movement'
 import { createPlayer, removePlayer, markPlayerAsImposter } from './player-manager'
 import { findClosestPlayer } from './collision-detection'
 import { getQueryParameter, getRandomString, updateQueryParameter } from './utils';
@@ -18,9 +15,7 @@ import { createAllColorPlayers } from './sprite-helper';
 
 import {
     PLAYER_SPRITE_HEIGHT, PLAYER_SPRITE_WIDTH,
-    PLAYER_HEIGHT, PLAYER_WIDTH,
     GHOST_SPRITE_HEIGHT, GHOST_SPRITE_WIDTH,
-    PLAYER_START_X, PLAYER_START_Y,
     START_BUTTON_START_X, START_BUTTON_START_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT,
     KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y
 } from './constants';
@@ -28,12 +23,9 @@ import {
 var player;
 var currentPlayerId;
 const allPlayers = [];
-let startButton;
-let killButton;
-var playerImage;
+let startButton; let killButton;
 let myGame;
-let gameStarted = false;
-let killed = false;
+let gameStarted = false; let killed = false;
 
 let pressedKeys = [];
 let socket;
@@ -71,7 +63,6 @@ class MyGame extends Phaser.Scene {
         socket.on('connect', function () {
             console.log('myID ' + socket.id);
             currentPlayerId = socket.id;
-            // player.id = socket.id;
         });
         socket.on('move', ({ id, position }) => {
             var otherPlayer = allPlayers.find(u => u.id === id);
@@ -110,13 +101,11 @@ class MyGame extends Phaser.Scene {
                     if (currentPlayerId === user.id) {
                         player = newPlayer;
                     }
-                    //movePlayerToPosition(newPlayer);
                 } else {
                     console.log('user is already here');
                     playerFromLocal.admin = user.admin;
                     if (player.id == user.id && user.admin === true) {
                         console.log('you are the admin');
-
                         createStartButton(this);
                     }
                 }
@@ -138,8 +127,8 @@ class MyGame extends Phaser.Scene {
             if (player.id === victim) {
                 killed = true;
                 console.log(`you are killed`);
-                removePlayer(player.id, allPlayers);
             }
+            removePlayer(player.id, allPlayers);
         })
     }
 

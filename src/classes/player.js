@@ -22,7 +22,6 @@ export default class Player extends Phaser.GameObjects.Sprite {
     }
 
     update() {
-        console.log('update player ' + this.id);
         this.x = this.position.x;
         this.y = this.position.y;
         if (!this.anims.isPlaying)

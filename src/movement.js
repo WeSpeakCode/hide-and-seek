@@ -31,13 +31,3 @@ export const movePlayer = (keys, player) => {
     }
     return isMoved;
 };
-
-export const movePlayerToPosition = (player) => {
-    var position = player.position;
-    if (typeof (position) === 'undefined') {
-        position = { x: PLAYER_START_X, y: PLAYER_START_Y };
-    }
-    var sprite = player.sprite;
-    sprite.x = position.x;
-    sprite.y = position.y;
-}
