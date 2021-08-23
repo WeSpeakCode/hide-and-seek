@@ -20,7 +20,7 @@ import {
     KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y
 } from './constants';
 
-var player;
+var player, spotlight;
 var currentPlayerId;
 const allPlayers = [];
 let startButton; let killButton;
@@ -44,6 +44,7 @@ class MyGame extends Phaser.Scene {
 
     preload() {
         this.load.image('ship', shipImg);
+        
         this.load.spritesheet('player', playerSprite, {
             frameWidth: PLAYER_SPRITE_WIDTH,
             frameHeight: PLAYER_SPRITE_HEIGHT,
@@ -58,6 +59,10 @@ class MyGame extends Phaser.Scene {
         });
         // this.load.image('startButtonSprite', startButtonSprite);
         this.load.image('killButtonSprite', killButtonSprite);
+
+        this.load.image('brick', ['assets//brick.jpg']);
+        this.lights.enable();
+        this.lights.setAmbientColor(0x808080);
 
         socket = io(`localhost:3000?room=${room}&user=${user}`);
         socket.on('connect', function () {
@@ -133,9 +138,11 @@ class MyGame extends Phaser.Scene {
     }
 
     create() {
-        const ship = this.add.image(0, 0, 'ship');
+        const ship = this.add.image(0, 0, 'ship');        
         console.log('creating all the players');
         createAllColorPlayers(myGame);
+        spotlight = this.lights.addLight(0, 0, 150).setIntensity(1);  
+        ship.setPipeline('Light2D');
 
         createKillButton(this);
 
@@ -181,6 +188,9 @@ class MyGame extends Phaser.Scene {
             }
             player.movedLastFrame = false;
         }
+        spotlight.x = player.x;
+        spotlight.y = player.y;
+
         if (player.imposter) {
             let closestPlayer = findClosestPlayer(player, allPlayers);
             killButton.visible = (closestPlayer !== undefined);
