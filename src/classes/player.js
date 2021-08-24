@@ -38,6 +38,11 @@ export default class Player extends Phaser.GameObjects.Sprite {
         this.titleLabel.updateTitleColor(this.imposter);
     }
 
+    setVisiblity(show) {
+        this.visible = show;
+        this.titleLabel.visible = show;
+    }
+
     get speed() {
         return 3;
     }
