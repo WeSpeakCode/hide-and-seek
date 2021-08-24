@@ -9,7 +9,7 @@ import killButtonSprite from './assets/kill-button.png'
 
 import { movePlayer } from './movement'
 import { createPlayer, removePlayer, markPlayerAsImposter } from './player-manager'
-import { findClosestPlayer } from './collision-detection'
+import { findClosestPlayer, markClosesPlayerVisible } from './collision-detection'
 import { getQueryParameter, getRandomString, updateQueryParameter } from './utils';
 import { createAllColorPlayers } from './sprite-helper';
 
@@ -20,7 +20,7 @@ import {
     KILL_BUTTON_OFFSET_X, KILL_BUTTON_OFFSET_Y
 } from './constants';
 
-var player, spotlight;
+var player, spotlight, msgBox;
 var currentPlayerId;
 const allPlayers = [];
 let startButton; let killButton;
@@ -144,6 +144,23 @@ class MyGame extends Phaser.Scene {
         spotlight = this.lights.addLight(0, 0, 150).setIntensity(1);  
         ship.setPipeline('Light2D');
 
+        /*
+        var x = 400;
+        var y = -300;
+        var width = 300;
+        var height = 250;
+
+        var group = this.add.group();
+        var graphics = this.make.graphics();
+        graphics.fillStyle(0xffffff);
+        graphics.fillRect(x, y+10, width, height-20);
+        var mask = new Phaser.Display.Masks.GeometryMask(this, graphics);
+        msgBox = this.add.text(x+20, y+20, "You have joined the game", { fontFamily: 'Arial', color: '#00ff00', wordWrap: { width: 310 } }).setOrigin(0);
+        msgBox.setMask(mask);
+        group.add(msgBox);
+        //myGame.world.bringToTop(group);
+        */
+
         createKillButton(this);
 
         this.input.keyboard.on('keydown', (e) => {
@@ -199,6 +216,7 @@ class MyGame extends Phaser.Scene {
                 killButton.y = player.y + KILL_BUTTON_OFFSET_Y;
             }
         }
+        markClosesPlayerVisible(player, allPlayers);
     }
 }
 
